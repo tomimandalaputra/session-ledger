@@ -1,16 +1,16 @@
 # Changelog
 
-All notable changes are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Versions below 1.0.0 are beta: commands, output, and flags may change between minor versions.
+All notable changes are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Versions with an `-rc` suffix are release candidates: commands, output, and flags may still change before `1.0.0`.
 
 ## [Unreleased]
+
+## [1.0.0-rc.1] - 2026-11-20
+
+First release candidate.
 
 ### Fixed
 
 - Windows: `--clean` now detects a transcript that was replaced by another file of the same size and modification time after the scan. The file identity was read lazily, so the check compared the new file with itself.
-
-## [0.0.1] - 2026-11-20
-
-First beta release.
 
 ### Added
 
@@ -19,5 +19,5 @@ First beta release.
 - `--version`: prints the version, operating system, architecture, and Go version.
 - Standalone binaries for Linux (including WSL), macOS, and Windows on amd64 and arm64, with `SHA256SUMS`.
 
-[Unreleased]: https://github.com/tomimandalaputra/session-ledger/compare/v0.0.1...HEAD
-[0.0.1]: https://github.com/tomimandalaputra/session-ledger/releases/tag/v0.0.1
+[Unreleased]: https://github.com/tomimandalaputra/session-ledger/compare/v1.0.0-rc.1...HEAD
+[1.0.0-rc.1]: https://github.com/tomimandalaputra/session-ledger/releases/tag/v1.0.0-rc.1

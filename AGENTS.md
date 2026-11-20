@@ -19,7 +19,7 @@ Session Ledger is a Go CLI with a Bubble Tea interface for Linux (including WSL)
 
 ## Versioning and releases
 
-Follow Semantic Versioning. The first release is `0.0.1` (beta); `1.0.0` marks the first stable release. Tags are `vX.Y.Z`; the release workflow builds `main.version` from the tag, requires a matching `CHANGELOG.md` section, and marks versions below 1.0.0 as pre-releases. The module path is `github.com/tomimandalaputra/session-ledger`. The release steps are in [CONTRIBUTING.md](CONTRIBUTING.md). Skills for Claude Code are reached through the `.claude/skills` symlink to `.agents/skills`.
+Follow Semantic Versioning. The first release is `1.0.0-rc.1`, a release candidate; `1.0.0` marks the first stable release. Tags are `vX.Y.Z` or `vX.Y.Z-rc.N`; the release workflow builds `main.version` from the tag, requires a matching `CHANGELOG.md` section, and marks versions with a suffix as pre-releases. The module path is `github.com/tomimandalaputra/session-ledger`. The release steps are in [CONTRIBUTING.md](CONTRIBUTING.md). Skills for Claude Code are reached through the `.claude/skills` symlink to `.agents/skills`.
 
 ## Commit messages
 

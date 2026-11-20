@@ -68,17 +68,16 @@ Notes:
 
 The project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-- `0.x.y` is beta. Flags, output, and behavior may change in a minor version. The first release is `0.0.1`.
+- `1.0.0-rc.N` is a release candidate and the first release is `1.0.0-rc.1`. Flags, output, and behavior may still change between candidates. Tags with a suffix are published as pre-releases.
 - `1.0.0` is the first stable release. From then on, breaking changes to flags, output meant for scripts, or cleanup behavior need a major version.
 - Backward-compatible features raise the minor version; fixes raise the patch version.
-- A pre-release candidate uses a suffix, for example `1.0.0-rc.1`.
 
 ## Release checklist (maintainer)
 
 1. Open a pull request titled `chore(release): vX.Y.Z` that moves the `[Unreleased]` entries in `CHANGELOG.md` under a new `## [X.Y.Z] - YYYY-MM-DD` heading and updates the compare links at the bottom.
 2. Merge it once CI passes, then update your local `main`.
 3. Tag the merge commit and push the tag: `git tag -a vX.Y.Z -m "vX.Y.Z" && git push origin vX.Y.Z`.
-4. The workflow tests on Linux (amd64 and arm64), macOS, and Windows, builds all six binaries with `SHA256SUMS`, and publishes the release with the changelog entry as its notes. It rejects tags that are not valid semantic versions or have no changelog entry. Versions below 1.0.0 and tags with a suffix are marked as pre-releases.
+4. The workflow tests on Linux (amd64 and arm64), macOS, and Windows, builds all six binaries with `SHA256SUMS`, and publishes the release with the changelog entry as its notes. It rejects tags that are not valid semantic versions or have no changelog entry. Tags with a suffix, and versions below 1.0.0, are marked as pre-releases.
 5. Download one binary from the release, check it against `SHA256SUMS`, and run `--version`.
 
 A published tag is permanent: the Go module proxy caches it. Fix a bad release with a new patch version, not by moving the tag.
