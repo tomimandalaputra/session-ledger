@@ -200,7 +200,7 @@ func TestCleanupMovesOnlyVerifiedUnchangedTranscripts(t *testing.T) {
 	writeFile(t, sibling, "artifact\n")
 	writeFile(t, filepath.Join(store, "settings.json"), "{}")
 
-	moved, kept, err := cleanup([]session{moved1, changed, unverified, moved2})
+	moved, kept, _, err := cleanup([]session{moved1, changed, unverified, moved2})
 	if err != nil || moved != 2 || kept != 2 {
 		t.Fatalf("moved=%d kept=%d err=%v; want 2, 2, nil", moved, kept, err)
 	}
@@ -227,7 +227,7 @@ func TestCleanupStopsAtFirstTrashFailureAndReportsProgress(t *testing.T) {
 	for _, name := range []string{"ok-1", "fail-2", "ok-3"} {
 		rows = append(rows, diskSession(t, "claude", filepath.Join(store, name+".jsonl"), name, store))
 	}
-	moved, kept, err := cleanup(rows)
+	moved, kept, _, err := cleanup(rows)
 	if err == nil || !strings.Contains(err.Error(), "fail-2.jsonl") || moved != 1 || kept != 2 {
 		t.Fatalf("moved=%d kept=%d err=%v; want 1, 2, error naming fail-2.jsonl", moved, kept, err)
 	}
@@ -244,7 +244,7 @@ func TestCleanupSkipsEverythingWhenAgentIsRunning(t *testing.T) {
 		t.Fatal(err)
 	}
 	rows := []session{diskSession(t, "codex", filepath.Join(store, "a.jsonl"), "a", store)}
-	moved, kept, err := cleanup(rows)
+	moved, kept, _, err := cleanup(rows)
 	if err == nil || moved != 0 || kept != 1 || !exists(rows[0].path) {
 		t.Errorf("moved=%d kept=%d err=%v; want nothing moved while codex runs", moved, kept, err)
 	}
@@ -259,14 +259,14 @@ func TestCleanupSkipsOmpSessionsThatAreHeld(t *testing.T) {
 	}
 	free := diskSession(t, "omp", filepath.Join(store, "free-1.jsonl"), "free-1", store)
 	held := diskSession(t, "omp", filepath.Join(store, "held-1.jsonl"), "held-1", store)
-	moved, kept, err := cleanup([]session{free, held})
+	moved, kept, _, err := cleanup([]session{free, held})
 	if err != nil || moved != 1 || kept != 1 || !exists(held.path) || !exists(filepath.Join(trashDir, "free-1.jsonl")) {
 		t.Errorf("moved=%d kept=%d err=%v; want only the unheld session moved", moved, kept, err)
 	}
 }
 
 func TestCleanupWithNothingSelectedDoesNothing(t *testing.T) {
-	if moved, kept, err := cleanup(nil); moved != 0 || kept != 0 || err != nil {
+	if moved, kept, _, err := cleanup(nil); moved != 0 || kept != 0 || err != nil {
 		t.Errorf("got %d, %d, %v", moved, kept, err)
 	}
 }
@@ -284,5 +284,42 @@ func TestTrashReportsWhenFileIsStillThere(t *testing.T) {
 	fakeBin(t, "gio", "echo no trash can >&2; exit 1")
 	if err := trash(path); err == nil || !strings.Contains(err.Error(), "no trash can") {
 		t.Errorf("err = %v; want gio's message in the error", err)
+	}
+}
+
+func TestCleanupCountsSkippedSessionsByReason(t *testing.T) {
+	fakeGio(t)
+	fakeOmp(t)
+	store, err := filepath.EvalSymlinks(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	free := diskSession(t, "omp", filepath.Join(store, "free-1.jsonl"), "free-1", store)
+	held := diskSession(t, "omp", filepath.Join(store, "held-1.jsonl"), "held-1", store)
+	changed := diskSession(t, "omp", filepath.Join(store, "free-2.jsonl"), "free-2", store)
+	unverified := diskSession(t, "omp", filepath.Join(store, "free-3.jsonl"), "free-3", "")
+	writeFile(t, changed.path, "a message arrived after selection\n")
+	moved, kept, why, err := cleanup([]session{free, held, changed, unverified})
+	if err != nil || moved != 1 || kept != 3 {
+		t.Fatalf("moved=%d kept=%d err=%v; want 1, 3, nil", moved, kept, err)
+	}
+	if why[whyBusy] != 1 || why[whyChanged] != 1 || why[whyProject] != 1 {
+		t.Errorf("why=%v; want one session per reason", why)
+	}
+}
+
+func TestMovableDropsProjectsWithNothingToMove(t *testing.T) {
+	fakeOmp(t)
+	inv := inventory{agents: []string{"omp"}, rows: []session{
+		{agent: "omp", id: "free-1", project: "/a"},
+		{agent: "omp", id: "held-1", project: "/b"},
+		{agent: "omp", id: "free-2", project: ""},
+	}}
+	got, notes := movable(inv)
+	if len(got.rows) != 1 || got.rows[0].id != "free-1" {
+		t.Errorf("rows=%v; want only free-1", got.rows)
+	}
+	if len(projects(got.rows, "omp")) != 1 || len(notes) != 1 || !strings.Contains(notes[0], "2 in use or not verified") {
+		t.Errorf("notes=%v; want one note counting the 2 left out", notes)
 	}
 }
