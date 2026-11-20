@@ -35,6 +35,13 @@ func setting(key, fallback string) string {
 }
 func directory(path string) bool { st, e := os.Stat(path); return e == nil && st.IsDir() }
 func installed(tool string) bool { _, e := exec.LookPath(tool); return e == nil }
+
+// pin reads the file identity now. On Windows, os.Lstat and DirEntry.Info load it lazily on the
+// first os.SameFile call, so a transcript replaced after the scan would be compared with itself.
+func pin(info os.FileInfo) os.FileInfo {
+	os.SameFile(info, info)
+	return info
+}
 func scan(home string) inventory {
 	var inv inventory
 	for _, a := range []struct {
@@ -64,7 +71,7 @@ func scan(home string) inventory {
 				if e != nil {
 					inv.warnings = append(inv.warnings, fmt.Sprintf("%s: %s: %v", a.name, entry.Name(), e))
 				}
-				inv.rows = append(inv.rows, session{a.name, path, m[1], project, info})
+				inv.rows = append(inv.rows, session{a.name, path, m[1], project, pin(info)})
 			}, &inv.warnings)
 		}
 	}

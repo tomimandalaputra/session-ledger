@@ -57,7 +57,7 @@ func diskSession(t *testing.T, agent, path, id, project string) session {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return session{agent: agent, path: path, id: id, project: project, info: info}
+	return session{agent: agent, path: path, id: id, project: project, info: pin(info)}
 }
 
 // fakeBin puts a shell script named name first on PATH. Skipped on Windows.
