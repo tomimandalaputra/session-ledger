@@ -117,6 +117,7 @@ func trash(path string) error {
 	}
 	return nil
 }
+
 // movable keeps only the sessions that pass the eligibility check, so the cleanup menu never
 // offers a project that cannot be moved. The notes say why sessions were left out.
 func movable(inv inventory) (inventory, []string) {

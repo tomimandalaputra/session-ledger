@@ -4,6 +4,11 @@ All notable changes are recorded here. The format follows [Keep a Changelog](htt
 
 ## [Unreleased]
 
+### Changed
+
+- `--clean` lists only projects with transcripts that can be moved. Sessions that are in use or not verified are left out, and a note says how many.
+- `--clean` reports why sessions were not moved: project not verified, in use or not verified by the agent, or changed since the scan.
+
 ## [1.0.0-rc.1] - 2026-11-20
 
 First release candidate.
