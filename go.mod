@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	github.com/charmbracelet/bubbletea v1.3.10
 	github.com/charmbracelet/x/ansi v0.10.1
-	github.com/charmbracelet/x/term v0.2.1
+	github.com/charmbracelet/x/term v0.2.2
 )
 
 require (
