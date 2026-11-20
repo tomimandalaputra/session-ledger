@@ -1,0 +1,6 @@
+/session-ledger
+/session-ledger.exe
+/dist/
+/release-notes.md
+*.test
+*.out
