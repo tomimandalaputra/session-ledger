@@ -15,7 +15,7 @@ body:
     attributes:
       label: Version
       description: Output of `session-ledger --version`.
-      placeholder: session-ledger 0.0.1 (linux/amd64, go1.24.0)
+      placeholder: session-ledger 1.0.0-rc.1 (linux/amd64, go1.24.0)
     validations:
       required: true
   - type: dropdown

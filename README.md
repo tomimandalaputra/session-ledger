@@ -4,7 +4,7 @@ A local-first terminal inventory for coding-agent sessions. Run `session-ledger`
 
 ## Status
 
-Beta. The project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html); versions below 1.0.0 may change flags and output between minor versions. See the [changelog](CHANGELOG.md).
+Release candidate. The project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html); until `1.0.0`, flags and output may change between candidates. See the [changelog](CHANGELOG.md).
 
 ## Install
 

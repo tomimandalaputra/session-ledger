@@ -4,7 +4,7 @@ Session Ledger reads local agent transcripts and can move them to the native Tra
 
 ## Supported versions
 
-The project is in beta (versions below 1.0.0). Only the latest release receives fixes.
+The project is in release-candidate status (versions before 1.0.0). Only the latest release receives fixes.
 
 ## Report a vulnerability
 
