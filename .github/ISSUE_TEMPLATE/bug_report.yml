@@ -1,0 +1,100 @@
+name: Bug report
+description: Something is wrong, missing, or unsafe in Session Ledger.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Search [existing issues](https://github.com/tomimandalaputra/session-ledger/issues) first.
+
+        **Do not attach transcripts or paste conversation content.** Preview output lists project paths, which can be private. Replace anything sensitive with `<redacted>`.
+
+        If the bug lets cleanup move something it should have kept, or could expose data, use a [private security report](https://github.com/tomimandalaputra/session-ledger/security/advisories/new) instead.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Output of `session-ledger --version`.
+      placeholder: session-ledger 0.0.1 (linux/amd64, go1.24.0)
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Linux
+        - WSL
+        - macOS
+        - Windows
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: How you installed it
+      options:
+        - Release binary
+        - go install
+        - Built from a checkout
+    validations:
+      required: true
+  - type: dropdown
+    id: agent
+    attributes:
+      label: Agent involved
+      description: Pick the agent whose sessions are affected, if any.
+      multiple: true
+      options:
+        - omp
+        - Claude Code
+        - Codex CLI
+        - Not specific to one agent
+  - type: dropdown
+    id: command
+    attributes:
+      label: Command
+      options:
+        - session-ledger (no flags)
+        - session-ledger --preview
+        - session-ledger --clean
+        - session-ledger --version
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened
+      description: Include the exact error text. For cleanup issues, say what had been moved and where it ended up (Trash, Recycle Bin, or nowhere).
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Run ...
+        2. Select ...
+        3. See ...
+  - type: textarea
+    id: output
+    attributes:
+      label: Output
+      description: Redact project paths you do not want public.
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you submit
+      options:
+        - label: I searched existing issues.
+          required: true
+        - label: I removed private paths and conversation content from this report.
+          required: true

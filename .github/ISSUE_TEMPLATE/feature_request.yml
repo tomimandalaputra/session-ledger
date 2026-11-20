@@ -1,0 +1,39 @@
+name: Feature request
+description: Propose new behavior, or support for another agent or platform.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Search [existing issues](https://github.com/tomimandalaputra/session-ledger/issues) first.
+
+        Session Ledger keeps these boundaries: the default and `--preview` never write, `--clean` needs explicit confirmation and never deletes permanently, and nothing is sent over the network. Proposals that change a boundary need a strong reason.
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What are you trying to do, and what stops you today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe commands, output, or prompts as the user would see them.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you considered
+  - type: textarea
+    id: agent-format
+    attributes:
+      label: For a new agent, where its sessions live
+      description: Directory, file layout, and the environment variable that relocates it, if any. Link the vendor documentation. Do not paste real transcripts.
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      options:
+        - label: I am willing to open a pull request for this.
