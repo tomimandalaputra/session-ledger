@@ -1,0 +1,90 @@
+name: Test and release
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        # Hosted Linux arm64 runners are free only for public repositories.
+        os: ${{ fromJSON(github.event.repository.private && '["ubuntu-latest","macos-latest","windows-latest"]' || '["ubuntu-latest","ubuntu-24.04-arm","macos-latest","windows-latest"]') }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Check formatting
+        if: runner.os == 'Linux'
+        run: test -z "$(gofmt -l .)"
+      - name: Check go.mod is tidy
+        if: runner.os == 'Linux'
+        run: go mod tidy -diff
+      - run: go vet ./...
+      - run: go test ./...
+      - run: go run . --version
+      - run: go run . --preview
+  cross-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Build every release target
+        env:
+          CGO_ENABLED: '0'
+        run: |
+          for os in linux darwin windows; do
+            for arch in amd64 arm64; do
+              GOOS=$os GOARCH=$arch go build -trimpath -o /dev/null .
+            done
+          done
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [test, cross-build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Validate tag and read release notes
+        run: |
+          tag="$GITHUB_REF_NAME"
+          semver='^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z.-]+)?$'
+          if ! [[ $tag =~ $semver ]]; then
+            echo "::error::Tag $tag is not a semantic version such as v0.0.1 or v1.0.0-rc.1"
+            exit 1
+          fi
+          awk -v h="## [${tag#v}]" 'index($0,h)==1{f=1;next} /^## \[/{f=0} f' CHANGELOG.md > release-notes.md
+          if ! grep -q '[^[:space:]]' release-notes.md; then
+            echo "::error::CHANGELOG.md has no entry for ${tag#v}. Add a '## [${tag#v}] - YYYY-MM-DD' section before tagging."
+            exit 1
+          fi
+          # Versions below 1.0.0 and tags with a pre-release suffix are published as pre-releases.
+          if [[ $tag == v0.* || $tag == *-* ]]; then echo "PRERELEASE=--prerelease" >> "$GITHUB_ENV"; fi
+      - name: Build binaries and checksums
+        env:
+          CGO_ENABLED: '0'
+        run: |
+          mkdir dist
+          for os in linux darwin windows; do
+            for arch in amd64 arm64; do
+              name=session-ledger-$os-$arch
+              if [[ $os == windows ]]; then name+=.exe; fi
+              GOOS=$os GOARCH=$arch go build -trimpath -ldflags "-s -w -X main.version=${GITHUB_REF_NAME#v}" -o "dist/$name" .
+            done
+          done
+          (cd dist && sha256sum session-ledger-* > SHA256SUMS)
+      - name: Publish release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/* --verify-tag --title "$GITHUB_REF_NAME" --notes-file release-notes.md $PRERELEASE
