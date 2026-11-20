@@ -4,6 +4,10 @@ All notable changes are recorded here. The format follows [Keep a Changelog](htt
 
 ## [Unreleased]
 
+### Fixed
+
+- Windows: `--clean` now detects a transcript that was replaced by another file of the same size and modification time after the scan. The file identity was read lazily, so the check compared the new file with itself.
+
 ## [0.0.1] - 2026-11-20
 
 First beta release.
