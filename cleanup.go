@@ -117,23 +117,67 @@ func trash(path string) error {
 	}
 	return nil
 }
-func cleanup(rows []session) (moved, kept int, err error) {
+// movable keeps only the sessions that pass the eligibility check, so the cleanup menu never
+// offers a project that cannot be moved. The notes say why sessions were left out.
+func movable(inv inventory) (inventory, []string) {
+	var notes []string
+	var rows []session
+	for _, a := range inv.agents {
+		ok, e := eligible(a, inv.rows)
+		if e != nil {
+			notes = append(notes, a+": "+e.Error())
+			continue
+		}
+		left := 0
+		for _, r := range inv.rows {
+			switch {
+			case r.agent != a:
+			case r.project != "" && ok[r.id]:
+				rows = append(rows, r)
+			default:
+				left++
+			}
+		}
+		if left > 0 {
+			notes = append(notes, fmt.Sprintf("%s: %d in use or not verified, not listed", a, left))
+		}
+	}
+	inv.rows = rows
+	return inv, notes
+}
+
+const (
+	whyProject = "project not verified"
+	whyBusy    = "in use or not verified by the agent"
+	whyChanged = "changed since the scan"
+)
+
+// cleanup moves the eligible rows to Trash. why counts the skipped rows by reason.
+func cleanup(rows []session) (moved, kept int, why map[string]int, err error) {
+	why = map[string]int{}
 	if len(rows) == 0 {
 		return
 	}
 	ok, e := eligible(rows[0].agent, rows)
 	if e != nil {
-		return 0, len(rows), e
+		return 0, len(rows), why, e
 	}
 	for _, r := range rows {
-		if r.project == "" || !ok[r.id] || !unchanged(r) {
-			kept++
+		switch {
+		case r.project == "":
+			why[whyProject]++
+		case !ok[r.id]:
+			why[whyBusy]++
+		case !unchanged(r):
+			why[whyChanged]++
+		default:
+			if e := trash(r.path); e != nil {
+				return moved, len(rows) - moved, why, fmt.Errorf("%s: %w", filepath.Base(r.path), e)
+			}
+			moved++
 			continue
 		}
-		if e := trash(r.path); e != nil {
-			return moved, len(rows) - moved, fmt.Errorf("%s: %w", filepath.Base(r.path), e)
-		}
-		moved++
+		kept++
 	}
 	return
 }

@@ -218,18 +218,21 @@ func run() error {
 	for _, w := range inv.warnings {
 		fmt.Fprintln(os.Stderr, "Note:", printable(w))
 	}
-	var agents []string
-	for _, a := range inv.agents {
-		if len(projects(inv.rows, a)) > 0 {
-			agents = append(agents, a)
-		}
-	}
-	if len(agents) == 0 {
+	if len(agentsWithProjects(inv)) == 0 {
 		fmt.Println("No local sessions found.")
 		return nil
 	}
 	if !term.IsTerminal(os.Stdin.Fd()) || !term.IsTerminal(os.Stdout.Fd()) {
 		return fmt.Errorf("interactive cleanup requires a terminal")
+	}
+	inv, notes := movable(inv)
+	for _, n := range notes {
+		fmt.Fprintln(os.Stderr, "Note:", printable(n))
+	}
+	agents := agentsWithProjects(inv)
+	if len(agents) == 0 {
+		fmt.Println("Nothing can be moved right now. Nothing was changed.")
+		return nil
 	}
 	result, e := tea.NewProgram(menu{inv: inv, agents: agents, width: 80, height: 24}, tea.WithAltScreen()).Run()
 	if e != nil {
@@ -240,9 +243,23 @@ func run() error {
 		fmt.Println("Cancelled. No sessions were moved.")
 		return nil
 	}
-	n, k, e := cleanup(m.selected)
+	n, k, why, e := cleanup(m.selected)
 	fmt.Printf("Moved: %d. Not moved: %d.\n", n, k)
+	for _, r := range []string{whyProject, whyBusy, whyChanged} {
+		if why[r] > 0 {
+			fmt.Printf("  %d %s\n", why[r], r)
+		}
+	}
 	return e
+}
+func agentsWithProjects(inv inventory) []string {
+	var agents []string
+	for _, a := range inv.agents {
+		if len(projects(inv.rows, a)) > 0 {
+			agents = append(agents, a)
+		}
+	}
+	return agents
 }
 func main() {
 	if e := run(); e != nil {
